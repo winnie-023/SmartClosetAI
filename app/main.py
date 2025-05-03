@@ -15,4 +15,4 @@ models.Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def read_root():
-    return {"message": "智慧穿衣後端啟動成功！"}
+    return {"message": "智慧穿衣後端啟動成功"}

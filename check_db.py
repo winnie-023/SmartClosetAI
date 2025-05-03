@@ -8,3 +8,4 @@ users = db.query(User).all()
 
 for user in users:
     print(f"User: {user.username}, Email: {user.email}")
+   
