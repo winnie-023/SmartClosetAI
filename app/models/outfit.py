@@ -1,3 +1,4 @@
+#models/user.py
 from sqlalchemy import Column, Integer, String, ForeignKey
 from app.core.db import Base
 

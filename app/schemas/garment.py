@@ -1,3 +1,4 @@
+#schemas/garment.py
 from pydantic import BaseModel
 
 class Garment(BaseModel):

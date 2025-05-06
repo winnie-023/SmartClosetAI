@@ -1,55 +1,55 @@
-from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
-from PIL import Image
+#api/v1/wardrobe.py
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import os, uuid
+import os 
 from app.models.wardrobe import Wardrobe
-from app.core.db import get_db
 from app.models.auth import User
 from app.api.v1.auth import get_current_user
+from app.core.db import get_db
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 
 router = APIRouter()
 
-Upload_DIR = "uploads"
-os.makedirs(Upload_DIR, exist_ok=True)
 
-@router.post("/upload")
-async def upload_image(file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    file_ext = os.path.splitext(file.filename)[-1]
-    filename = f"{uuid.uuid4()}{file_ext}"
-    file_path = os.path.join(Upload_DIR, filename)
+@router.get("/items")
+def get_wardrobe_items(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    獲取當前使用者的所有衣櫃物品。
+    """
+    wardrobe_items = db.query(Wardrobe).filter(Wardrobe.user_id == current_user.id).all()
+    if not wardrobe_items:
+        return {"user_id": current_user.id, "items": [], "message": "你的衣櫃是空的"}
 
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-        
-    try:
-        img = Image.open(file_path)
-        img.verify()  # 驗證圖片
-    except Exception:
-        os.remove(file_path)
-        raise HTTPException(status_code=400, detail="Invalid image file")
+    result = []
+    for item in wardrobe_items:
+        result.append({
+            "id": item.id, 
+            "filename": item.filename,
+            "category": item.category,
+            "color": item.color, 
+            "material": item.material, 
+            "style": item.style, 
+            "width": item.width, 
+            "height": item.height, 
+            "uploaded_at": item.uploaded_at 
+        })
 
-    width, height = img.size
+    return {"user_id": current_user.id, "items": result}
 
-    if height > width:
-        category = "外套"
-    else:
-        category = "褲子"
+@router.delete("/items/{item_id}")
+def delete_wardrobe_item(item_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    刪除使用者衣櫃中的指定物品。
+    """
+    db_item = db.query(Wardrobe).filter(Wardrobe.id == item_id, Wardrobe.user_id == current_user.id).first()
+    if db_item is None:
+        raise HTTPException(status_code=404, detail="找不到指定的衣櫃物品或你沒有權限刪除")
 
-    db_item = Wardrobe(
-        filename=filename,
-        category=category,
-        width=width,
-        height=height,
-        user_id=current_user.id
-    )
-    db.add(db_item)
+    db.delete(db_item)
     db.commit()
-    db.refresh(db_item)
 
-    return {
-        "filename": filename,
-        "category": category,
-        "size":{ "width": width, "height": height},
-        "user_id": current_user.id
-    }
+    return {"message": f"衣櫃物品 {item_id} 已從衣櫃中刪除"}
+

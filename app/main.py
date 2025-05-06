@@ -1,17 +1,21 @@
+# app/main.py
 from fastapi import FastAPI
 from app.api.v1.router import api_router
 from app import models
-from app.core.db import engine
-import app.models.auth
-import app.models.user
-from api import upload
+from app.core.db import engine, Base
+from dotenv import load_dotenv
+import logging, os
+from app.models import wardrobe
 
-app = FastAPI(title="Smart Wardrobe API", version="1.0.0")
+load_dotenv()
+
 app = FastAPI()
 
-app.include_router(upload.router)
+Base.metadata.create_all(bind=engine)
 
-models.Base.metadata.create_all(bind=engine)   
+app.include_router(api_router, prefix="/api/v1")
+
+logging.basicConfig(level=logging.DEBUG)
 
 @app.get("/")
 def read_root():
