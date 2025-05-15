@@ -1,0 +1,6 @@
+# smart_wardrobe.yaml 
+train: /Users/linyiwei/smart-wardrobe/images/train
+val: /Users/linyiwei/smart-wardrobe/images/val
+
+nc: 5  # 類別數，請填你的分類總數
+names: ['tshirt', 'pants', 'dress', 'jacket', 'shoes']  # 類別名稱列表
