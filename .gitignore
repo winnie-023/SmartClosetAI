@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.db
+.env
+*.pt
+*.pth
+uploaded_images/
+datasets/
+runs/
+*.webp
+*.sqlite3images/train/
+images/train/
+images/val/
+wardrobe/
